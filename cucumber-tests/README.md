@@ -10,8 +10,6 @@ Automated test framework for the SwagLabs Mobile App using Cucumber (BDD), Appiu
 2. [Running Tests Locally](#running-tests-locally)
 3. [Known Limitations](#known-limitations)
 4. [Test Scenarios](#test-scenarios)
-5. [Test Reports](#test-reports)
-6. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -183,16 +181,6 @@ The app must be installed on your emulator or device before running tests.
 
 ---
 
-### 📱 Device/Emulator Matrix
-
-The tests have been verified on the following configurations:
-
-| Platform | OS Version | Device Type | Status |
-|----------|-----------|-------------|--------|
-| Android | 11+ (API 30+) | Emulator | ✅ Supported |
-| Android | 11+ (API 30+) | Physical Device | ✅ Supported |
-| Android | 10 and below | Any | ⚠️ Not Tested |
-
 **Recommended Configuration:**
 - **OS**: Android 11 or higher (API 30+)
 - **Device**: Pixel 4/5/6 emulator or equivalent physical device
@@ -200,7 +188,7 @@ The tests have been verified on the following configurations:
 
 ---
 
-## 🚀 Running Tests Locally
+## Running Tests Locally
 
 Once your environment is set up, follow these simple steps to run tests.
 
@@ -265,11 +253,6 @@ mvn clean test -Dcucumber.filter.tags="@positive"
 mvn clean test -Dcucumber.filter.tags="@negative"
 ```
 
-#### Run Only Smoke Tests (Critical Tests)
-```bash
-mvn clean test -Dcucumber.filter.tags="@smoke"
-```
-
 #### Run Product Navigation Tests
 ```bash
 mvn clean test -Dcucumber.filter.tags="@product-navigation"
@@ -278,16 +261,6 @@ mvn clean test -Dcucumber.filter.tags="@product-navigation"
 #### Run Checkout Tests
 ```bash
 mvn clean test -Dcucumber.filter.tags="@checkout"
-```
-
-#### Run Multiple Tags (AND condition)
-```bash
-mvn clean test -Dcucumber.filter.tags="@positive and @smoke"
-```
-
-#### Run Multiple Tags (OR condition)
-```bash
-mvn clean test -Dcucumber.filter.tags="@positive or @smoke"
 ```
 
 ---
@@ -523,287 +496,6 @@ mvn clean test -Dcucumber.filter.tags="@specific-tag"
 
 ---
 
-## 📊 Test Reports
-
-After running tests, reports are automatically generated in multiple formats:
-
-### HTML Report (Most Readable)
-- **Location**: `target/cucumber-reports/cucumber.html`
-- **View**: Open in browser
-  ```bash
-  open target/cucumber-reports/cucumber.html
-  ```
-- **Contents**: Scenarios, steps, pass/fail status, execution time
-
-### JSON Report (For Tools)
-- **Location**: `target/cucumber-reports/cucumber.json`
-- **Use**: Can be imported into test management tools
-
-### JUnit XML Report (For CI/CD)
-- **Location**: `target/cucumber-reports/cucumber.xml`
-- **Use**: Jenkins, GitLab CI, GitHub Actions integration
-
-### Screenshots (On Failure)
-- **Location**: `target/screenshots/`
-- **Contains**: PNG screenshots captured when tests fail
-- **Naming**: `ScenarioName_timestamp.png`
-
----
-
-## 🧰 Troubleshooting
-
-### Problem: "JAVA_HOME is not defined"
-
-**Cause:** Java JDK is not installed or JAVA_HOME not set.
-
-**Solution:**
-```bash
-# Mac
-export JAVA_HOME=$(/usr/libexec/java_home -v 11)
-echo $JAVA_HOME
-
-# Windows
-set JAVA_HOME=C:\Program Files\Java\jdk-11
-echo %JAVA_HOME%
-```
-
----
-
-### Problem: "Appium connection error" or "Connection refused"
-
-**Cause:** Appium server is not running.
-
-**Solution:**
-1. Open a terminal
-2. Run: `appium`
-3. Keep terminal open
-4. Run tests in a different terminal
-
----
-
-### Problem: "No devices found" or "Device offline"
-
-**Cause:** Emulator/device is not running or not connected.
-
-**Solution:**
-```bash
-# Check connected devices
-adb devices
-
-# If no devices listed:
-# - Start emulator from Android Studio
-# - OR reconnect USB cable for physical device
-# - OR restart adb:
-adb kill-server
-adb start-server
-adb devices
-```
-
----
-
-### Problem: "App not installed" or "Activity not found"
-
-**Cause:** SwagLabs app is not installed on the device.
-
-**Solution:**
-```bash
-# Install the app
-adb install ../android/app/build/outputs/apk/debug/app-debug.apk
-
-# Verify installation
-adb shell pm list packages | grep swaglabs
-```
-
----
-
-### Problem: Tests run very slowly
-
-**Cause:** Multiple factors can slow down tests.
-
-**Solutions:**
-1. **Use faster emulator:**
-   - Allocate more RAM (4GB+)
-   - Enable hardware acceleration
-   - Use x86 system image (faster than ARM)
-
-2. **Reduce wait times:**
-   - Edit `config.properties`:
-     ```properties
-     implicit.wait=10
-     explicit.wait=15
-     ```
-
-3. **Use physical device:**
-   - Physical devices are usually faster than emulators
-
----
-
-### Problem: "Element not found" errors
-
-**Cause:** Element not visible or wait timeout too short.
-
-**Solutions:**
-1. **Increase wait timeout:**
-   - Edit wait durations in `config.properties`
-
-2. **Verify accessibility IDs:**
-   - Use Appium Inspector to check element IDs
-   - Ensure app has correct `testID` properties
-
-3. **Check screenshots:**
-   - Failed tests capture screenshots in `target/screenshots/`
-   - Review to see app state when error occurred
-
----
-
-### Problem: Error messages not captured in negative tests
-
-**Cause:** Error text elements not found correctly.
-
-**Solution:**
-- Tests are configured to find TextView elements within error containers
-- If still failing, check debug output:
-  ```
-  DEBUG - Error container is visible
-  DEBUG - Found X TextView elements in error container
-  DEBUG - TextView text: 'Username is required'
-  ```
-
----
-
-### Problem: "Login screen should be displayed" error in product tests
-
-**Cause:** App didn't fully reset or is still loading.
-
-**Solution:**
-- Tests automatically detect if on inventory screen and logout if needed
-- If persists, restart the app manually:
-  ```bash
-  adb shell am force-stop com.swaglabsmobileapp
-  ```
-
----
-
-## 📁 Project Structure
-
-```
-cucumber-tests/
-├── pom.xml                           # Maven dependencies and build configuration
-├── README.md                         # This file
-├── src/test/
-│   ├── java/com/swaglabsmobileapp/
-│   │   ├── runners/
-│   │   │   └── TestRunner.java       # Cucumber test runner with JUnit
-│   │   ├── stepdefinitions/
-│   │   │   ├── LoginSteps.java       # Login scenario step definitions
-│   │   │   ├── ProductNavigationSteps.java  # Product scenario steps
-│   │   │   ├── CheckoutSteps.java    # Checkout scenario steps
-│   │   │   └── Hooks.java            # Setup/teardown and screenshots
-│   │   ├── pages/
-│   │   │   ├── LoginPage.java        # Login screen page object
-│   │   │   ├── InventoryPage.java    # Product list page object
-│   │   │   ├── ProductDetailsPage.java  # Product details page object
-│   │   │   └── MenuPage.java         # Side menu page object
-│   │   └── utils/
-│   │       ├── DriverManager.java    # Appium driver management
-│   │       └── ConfigReader.java     # Configuration reader
-│   └── resources/
-│       ├── features/
-│       │   ├── login.feature         # Login test scenarios (Gherkin)
-│       │   ├── product-navigation.feature  # Product navigation scenarios
-│       │   └── checkout.feature      # Checkout scenarios
-│       ├── config.properties         # Test configuration
-│       └── cucumber.properties       # Cucumber settings
-└── target/                           # Generated after running tests
-    ├── cucumber-reports/             # Test reports
-    └── screenshots/                  # Failure screenshots
-```
-
----
-
-## 🎯 Test Credentials
-
-The app supports the following test accounts:
-
-| Username | Password | Purpose |
-|----------|----------|---------|
-| `standard_user` | `secret_sauce` | ✅ Valid user for positive tests |
-| `locked_out_user` | `secret_sauce` | 🔒 Locked user for negative tests |
-| `problem_user` | `secret_sauce` | ⚠️ User with app issues |
-
----
-
-## 💡 Tips for Non-Technical Users
-
-### Before Every Test Run:
-
-1. ✅ Appium server is running (check terminal)
-2. ✅ Emulator or device is running (`adb devices` shows device)
-3. ✅ App is installed (`adb shell pm list packages | grep swaglabs`)
-4. ✅ You're in the correct directory: `cucumber-tests/`
-
-### Understanding Test Output:
-
-When tests run, you'll see:
-
-```
-[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0
-```
-
-- **Tests run**: Total number of scenarios executed
-- **Failures**: Tests that failed (expected behavior didn't happen)
-- **Errors**: Tests that crashed (code errors)
-- **Skipped**: Tests that were skipped
-
-**Green output = All tests passed ✅**  
-**Red output = Some tests failed ❌**
-
-### If Tests Fail:
-
-1. **Don't panic!** Check the error message first
-2. Look at screenshots in `target/screenshots/`
-3. Review the HTML report for detailed step-by-step info
-4. Check the Troubleshooting section above
-5. Try running the specific failing test again
-
----
-
-## 🛠️ Advanced Configuration
-
-Edit `src/test/resources/config.properties` for custom settings:
-
-```properties
-# Appium Server (change if running on different port)
-appium.server.url=http://127.0.0.1:4723
-
-# Device Configuration
-device.name=Android Emulator        # Change to your device name
-platform.version=                    # Leave empty for any version
-
-# App Launch (using installed app)
-app.package=com.swaglabsmobileapp
-app.activity=.MainActivity
-
-# Reset Options
-no.reset=false      # false = reset app data between tests
-full.reset=false    # true = uninstall/reinstall (requires APK path)
-
-# Wait Timeouts (in seconds)
-implicit.wait=10    # Increase if tests are flaky
-explicit.wait=15    # Increase for slower devices
-```
-
----
-
-## 📚 Additional Resources
-
-- [Appium Documentation](http://appium.io/docs/en/latest/)
-- [Cucumber Documentation](https://cucumber.io/docs/cucumber/)
-- [Maven Getting Started](https://maven.apache.org/guides/getting-started/)
-- [Android ADB Commands](https://developer.android.com/studio/command-line/adb)
-
----
-
 ## 📝 Summary Checklist
 
 Before running tests, ensure:
@@ -821,18 +513,29 @@ Before running tests, ensure:
 
 Then run: `mvn clean test`
 
+#### Run Only Login Tests
+```bash
+mvn clean test -Dcucumber.filter.tags="@login"
+```
+
+#### Run Only Positive Tests (Happy Path)
+```bash
+mvn clean test -Dcucumber.filter.tags="@positive"
+```
+
+#### Run Only Negative Tests (Error Cases)
+```bash
+mvn clean test -Dcucumber.filter.tags="@negative"
+```
+
+#### Run Product Navigation Tests
+```bash
+mvn clean test -Dcucumber.filter.tags="@product-navigation"
+```
+
+#### Run Checkout Tests
+```bash
+mvn clean test -Dcucumber.filter.tags="@checkout"
+```
+
 ---
-
-## 🆘 Getting Help
-
-If you encounter issues not covered in this README:
-
-1. Check the Appium server terminal output for detailed error logs
-2. Review screenshots in `target/screenshots/` for failed tests
-3. Check the HTML report in `target/cucumber-reports/cucumber.html`
-4. Verify all environment setup steps were completed
-5. Try restarting Appium server and device/emulator
-
----
-
-**Happy Testing! 🎉**
