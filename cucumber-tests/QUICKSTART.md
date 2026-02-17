@@ -153,29 +153,7 @@ Use these credentials (already configured in tests):
 
 See the full [README.md](README.md) for detailed documentation.
 
-## Project Structure Overview
-
-```
-cucumber-tests/
-├── src/test/
-│   ├── java/                     # Java test code
-│   │   ├── runners/              # Test runner
-│   │   ├── stepdefinitions/      # Gherkin step implementations
-│   │   ├── pages/                # Page Object Model
-│   │   └── utils/                # Utilities (driver, config)
-│   └── resources/
-│       ├── features/             # Gherkin feature files
-│       │   └── login.feature     # Login test scenarios
-│       ├── config.properties     # Test configuration
-│       └── cucumber.properties   # Cucumber settings
-├── target/
-│   ├── cucumber-reports/         # Test reports (HTML, JSON, XML)
-│   └── screenshots/              # Failure screenshots
-├── pom.xml                       # Maven dependencies
-└── README.md                     # Full documentation
-```
-
-## Success! 🎉
+## Success! 
 
 If everything is set up correctly, you should see output like:
 
