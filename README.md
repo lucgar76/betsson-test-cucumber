@@ -1,7 +1,1 @@
-# Deprecation Notice
-
-THIS PROJECT IS DEPRECATED IN FAVOR OF THE NEW SAMPLE APP FOR REACT NATIVE.
-THE NEW APPS CAN BE FOUND:
-
-[My Demo App - Android](https://github.com/saucelabs/my-demo-app-android)
-[My Demo App - iOS](https://github.com/saucelabs/my-demo-app-ios)
+Mobile test automation framework for SwagLabs e-commerce app using Appium, Cucumber BDD, and Java. Includes comprehensive login, product navigation, and checkout test scenarios with Page Object Model design pattern.
