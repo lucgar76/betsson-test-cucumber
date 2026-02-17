@@ -306,10 +306,11 @@ The report shows:
 **Impact:**
 - Generally not an issue for most tests
 - If state pollution occurs, tests may fail
+- We stay logged in the App
 
 **Workaround:**
 - Each test scenario creates a new driver session
-- Tests should be independent and not rely on previous test state
+- Added log out steps in tests where we log in
 
 ### 2. Timing/Synchronization Issues
 
@@ -351,35 +352,8 @@ The report shows:
 
 **Mitigation:**
 - Tests automatically scroll to top before clicking these buttons
-- Retry logic implemented for filter button clicks
 
-**If Click Fails:**
-- The element might be obscured by another UI element
-- Check screenshots in `target/screenshots/` for visual confirmation
-
-### 5. Device/Emulator Performance
-
-**Issue:** Slow emulators may cause test failures due to timeouts.
-
-**Recommendation:**
-- Use hardware acceleration for emulators
-- Allocate sufficient RAM (4GB+) to emulator
-- Physical devices generally perform better than emulators
-
-### 6. Multiple Test Runs
-
-**Issue:** Running tests repeatedly in quick succession may cause session conflicts.
-
-**Workaround:**
-- Wait 5-10 seconds between test runs
-- Or restart Appium server between runs:
-  ```bash
-  # Stop Appium (Ctrl+C)
-  # Start again
-  appium
-  ```
-
-### 7. App Installation
+### 5. App Installation
 
 **Issue:** Tests assume app is already installed on device/emulator.
 
@@ -397,10 +371,6 @@ The report shows:
 ---
 
 ## 🔍 Flaky Test Handling
-
-### What Are Flaky Tests?
-
-Flaky tests are tests that sometimes pass and sometimes fail without any code changes. Common in mobile testing due to timing, network, or device performance issues.
 
 ### Identifying Flaky Tests
 
@@ -512,30 +482,5 @@ Before running tests, ensure:
 - [ ] In correct directory (`cd cucumber-tests`)
 
 Then run: `mvn clean test`
-
-#### Run Only Login Tests
-```bash
-mvn clean test -Dcucumber.filter.tags="@login"
-```
-
-#### Run Only Positive Tests (Happy Path)
-```bash
-mvn clean test -Dcucumber.filter.tags="@positive"
-```
-
-#### Run Only Negative Tests (Error Cases)
-```bash
-mvn clean test -Dcucumber.filter.tags="@negative"
-```
-
-#### Run Product Navigation Tests
-```bash
-mvn clean test -Dcucumber.filter.tags="@product-navigation"
-```
-
-#### Run Checkout Tests
-```bash
-mvn clean test -Dcucumber.filter.tags="@checkout"
-```
 
 ---
