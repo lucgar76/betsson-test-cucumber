@@ -32,3 +32,6 @@ Feature: Checkout Flow
     Then I should be on the Checkout Complete screen
     When I tap the Back Home button
     Then I should be on the Inventory screen
+    And I click on the burger menu at the top left
+    And I click on the Log out button
+    Then I should be navigated to the login screen
