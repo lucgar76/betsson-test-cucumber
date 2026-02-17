@@ -63,3 +63,5 @@ buck-out/
 apps/
 *.log
 XCUITestOutput/
+.vscode/
+cucumber-tests/target/
