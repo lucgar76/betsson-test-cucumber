@@ -265,7 +265,7 @@ mvn clean test -Dcucumber.filter.tags="@checkout"
 
 ---
 
-### Viewing Test Reports
+### Bonus: Viewing Test Reports
 
 After tests complete, open the HTML report:
 
