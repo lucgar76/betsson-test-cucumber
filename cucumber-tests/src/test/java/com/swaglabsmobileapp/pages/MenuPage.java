@@ -1,5 +1,6 @@
 package com.swaglabsmobileapp.pages;
 
+import com.swaglabsmobileapp.utils.AndroidActions;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.pagefactory.AndroidFindBy;
 import io.appium.java_client.pagefactory.AppiumFieldDecorator;
@@ -46,6 +47,17 @@ public class MenuPage {
      * Click the logout button in the side menu
      */
     public void clickLogout() {
+        try {
+            if (!logoutButton.isDisplayed()) {
+                AndroidActions.scrollToDescription(driver, "test-LOGOUT");
+            }
+        } catch (Exception ignored) {
+            try {
+                AndroidActions.scrollToDescription(driver, "test-LOGOUT");
+            } catch (Exception scrollFailed) {
+                // The menu is not a scrollable list on every screen size.
+            }
+        }
         wait.until(ExpectedConditions.elementToBeClickable(logoutButton));
         logoutButton.click();
     }

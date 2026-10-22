@@ -1,7 +1,6 @@
 package com.swaglabsmobileapp.pages;
 
-import io.appium.java_client.AppiumBy;
-import io.appium.java_client.AppiumDriver;
+import com.swaglabsmobileapp.utils.AndroidActions;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.pagefactory.AndroidFindBy;
 import io.appium.java_client.pagefactory.AppiumFieldDecorator;
@@ -48,7 +47,7 @@ public class LoginPage {
      */
     public LoginPage(AndroidDriver driver) {
         this.driver = driver;
-        this.wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+        this.wait = new WebDriverWait(driver, Duration.ofSeconds(30));
         PageFactory.initElements(new AppiumFieldDecorator(driver), this);
     }
     
@@ -76,10 +75,7 @@ public class LoginPage {
      */
     public void enterUsername(String username) {
         wait.until(ExpectedConditions.visibilityOf(usernameField));
-        usernameField.clear();
-        if (username != null && !username.isEmpty()) {
-            usernameField.sendKeys(username);
-        }
+        AndroidActions.typeInto(driver, usernameField, username);
     }
     
     /**
@@ -88,16 +84,14 @@ public class LoginPage {
      */
     public void enterPassword(String password) {
         wait.until(ExpectedConditions.visibilityOf(passwordField));
-        passwordField.clear();
-        if (password != null && !password.isEmpty()) {
-            passwordField.sendKeys(password);
-        }
+        AndroidActions.typeInto(driver, passwordField, password);
     }
     
     /**
      * Click the login button
      */
     public void clickLoginButton() {
+        AndroidActions.hideKeyboard(driver);
         wait.until(ExpectedConditions.elementToBeClickable(loginButton));
         loginButton.click();
     }

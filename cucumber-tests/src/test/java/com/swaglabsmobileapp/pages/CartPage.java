@@ -1,5 +1,6 @@
 package com.swaglabsmobileapp.pages;
 
+import com.swaglabsmobileapp.utils.AndroidActions;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.pagefactory.AndroidFindBy;
 import io.appium.java_client.pagefactory.AppiumFieldDecorator;
@@ -19,7 +20,7 @@ public class CartPage {
     private AndroidDriver driver;
     private WebDriverWait wait;
 
-    @AndroidFindBy(xpath = "//android.widget.TextView[@text='YOUR CART']")
+    @AndroidFindBy(accessibility = "test-Cart Content")
     private WebElement yourCartTitle;
 
     @AndroidFindBy(accessibility = "test-CHECKOUT")
@@ -51,6 +52,11 @@ public class CartPage {
      * Selector: content-desc="test-CHECKOUT" or text="CHECKOUT"
      */
     public void clickCheckout() {
+        try {
+            AndroidActions.scrollToDescription(driver, "test-CHECKOUT");
+        } catch (Exception ignored) {
+            // The button is already on screen.
+        }
         wait.until(ExpectedConditions.elementToBeClickable(checkoutButton));
         checkoutButton.click();
         // Allow screen transition to Checkout Information
