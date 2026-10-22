@@ -1,5 +1,6 @@
 package com.swaglabsmobileapp.pages;
 
+import com.swaglabsmobileapp.utils.AndroidActions;
 import io.appium.java_client.AppiumBy;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.pagefactory.AndroidFindBy;
@@ -61,8 +62,7 @@ public class CheckoutInfoPage {
      */
     public void enterFirstName(String firstName) {
         wait.until(ExpectedConditions.visibilityOf(firstNameInput));
-        firstNameInput.clear();
-        firstNameInput.sendKeys(firstName);
+        AndroidActions.typeInto(driver, firstNameInput, firstName);
     }
 
     /**
@@ -70,8 +70,7 @@ public class CheckoutInfoPage {
      */
     public void enterLastName(String lastName) {
         wait.until(ExpectedConditions.visibilityOf(lastNameInput));
-        lastNameInput.clear();
-        lastNameInput.sendKeys(lastName);
+        AndroidActions.typeInto(driver, lastNameInput, lastName);
     }
 
     /**
@@ -79,8 +78,7 @@ public class CheckoutInfoPage {
      */
     public void enterZipCode(String zipCode) {
         wait.until(ExpectedConditions.visibilityOf(zipCodeInput));
-        zipCodeInput.clear();
-        zipCodeInput.sendKeys(zipCode);
+        AndroidActions.typeInto(driver, zipCodeInput, zipCode);
     }
 
     /**
@@ -88,6 +86,12 @@ public class CheckoutInfoPage {
      * Selector: content-desc="test-CONTINUE"
      */
     public void clickContinue() {
+        AndroidActions.hideKeyboard(driver);
+        try {
+            AndroidActions.scrollToDescription(driver, "test-CONTINUE");
+        } catch (Exception ignored) {
+            // The button is already on screen.
+        }
         wait.until(ExpectedConditions.elementToBeClickable(continueButton));
         continueButton.click();
     }

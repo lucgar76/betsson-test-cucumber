@@ -1,5 +1,6 @@
 package com.swaglabsmobileapp.pages;
 
+import com.swaglabsmobileapp.utils.AndroidActions;
 import io.appium.java_client.AppiumBy;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.pagefactory.AndroidFindBy;
@@ -32,7 +33,7 @@ public class InventoryPage {
     @AndroidFindBy(accessibility = "test-Item")
     private List<WebElement> productItems;
     
-    @AndroidFindBy(xpath = "//*[contains(@content-desc, 'test-Item')]")
+    @AndroidFindBy(accessibility = "test-Item")
     private List<WebElement> allProducts;
     
     @AndroidFindBy(accessibility = "test-Menu")
@@ -106,8 +107,8 @@ public class InventoryPage {
      */
     public boolean areProductsDisplayed() {
         try {
-            wait.until(ExpectedConditions.visibilityOfAllElements(allProducts));
-            return !allProducts.isEmpty();
+            wait.until(d -> !d.findElements(AppiumBy.accessibilityId("test-Item")).isEmpty());
+            return true;
         } catch (Exception e) {
             return false;
         }
@@ -118,12 +119,7 @@ public class InventoryPage {
      * @return Count of visible products
      */
     public int getProductCount() {
-        try {
-            wait.until(ExpectedConditions.visibilityOfAllElements(allProducts));
-            return allProducts.size();
-        } catch (Exception e) {
-            return 0;
-        }
+        return driver.findElements(AppiumBy.accessibilityId("test-Item")).size();
     }
     
     /**
@@ -186,14 +182,17 @@ public class InventoryPage {
      * @param productIndex Product index (1 for first product, 2 for second, etc.)
      */
     public void clickProductByIndex(int productIndex) {
-        wait.until(ExpectedConditions.visibilityOfAllElements(allProducts));
-        if (productIndex > 0 && productIndex <= allProducts.size()) {
-            WebElement product = allProducts.get(productIndex - 1);
-            wait.until(ExpectedConditions.elementToBeClickable(product));
-            product.click();
-        } else {
-            throw new IllegalArgumentException("Product index " + productIndex + " is out of range. Available products: " + allProducts.size());
+        wait.until(d -> d.findElements(AppiumBy.accessibilityId("test-Item")).size() >= productIndex);
+        List<WebElement> products = driver.findElements(AppiumBy.accessibilityId("test-Item"));
+        if (productIndex <= 0 || productIndex > products.size()) {
+            throw new IllegalArgumentException("Product index " + productIndex + " is out of range. Available products: " + products.size());
         }
+
+        WebElement product = products.get(productIndex - 1);
+        List<WebElement> titles = product.findElements(AppiumBy.accessibilityId("test-Item title"));
+        WebElement target = titles.isEmpty() ? product : titles.get(0);
+        wait.until(ExpectedConditions.elementToBeClickable(target));
+        target.click();
     }
     
     /**
@@ -410,16 +409,9 @@ public class InventoryPage {
      */
     public boolean isListViewDisplayed() {
         try {
-            System.out.println("Checking if list view is displayed...");
-            
-            // In list view, products should still be visible
-            wait.until(ExpectedConditions.visibilityOfAllElements(allProducts));
-            
-            // Additional wait to ensure view has transitioned
-            Thread.sleep(500);
-            
-            System.out.println("List view is displayed with " + allProducts.size() + " products");
-            return !allProducts.isEmpty();
+            // Grid cards do not render the description. List rows do.
+            wait.until(d -> !d.findElements(AppiumBy.accessibilityId("test-Item description")).isEmpty());
+            return true;
         } catch (Exception e) {
             System.err.println("List view not displayed: " + e.getMessage());
             return false;
@@ -433,26 +425,23 @@ public class InventoryPage {
      * @param productName The product name (e.g., "Sauce Labs Bolt T-Shirt" or "Bolt T-Shirt")
      */
     public void clickAddToCartForProduct(String productName) {
+        String searchText = productName.contains("Labs ")
+                ? productName.substring(productName.indexOf("Labs ") + 5)
+                : productName;
+
         try {
-            scrollToTop();
-            
-            // Extract the distinctive part of the product name for matching (e.g., "Bolt T-Shirt" from "Sauce Labs Bolt T-Shirt")
-            String searchText = productName.contains("Labs ") ? productName.substring(productName.indexOf("Labs ") + 5) : productName;
-            
-            // XPath: find the Add to Cart (+) button within the product item that contains this product name
-            // Structure: test-Item (ViewGroup) contains test-Item title (TextView) and + button (TextView)
-            String xpath = "//android.view.ViewGroup[@content-desc='test-Item'][.//android.widget.TextView[contains(@text, '" + searchText + "')]]//android.widget.TextView[@text='+']";
-            
-            WebElement addButton = driver.findElement(AppiumBy.xpath(xpath));
-            wait.until(ExpectedConditions.elementToBeClickable(addButton));
-            addButton.click();
-            
-            System.out.println("Clicked Add to Cart for product: " + productName);
-            Thread.sleep(1000);
-        } catch (Exception e) {
-            System.err.println("Failed to click Add to Cart for product " + productName + ": " + e.getMessage());
-            throw new RuntimeException("Unable to click Add to Cart for product: " + productName, e);
+            AndroidActions.scrollToText(driver, searchText);
+        } catch (Exception ignored) {
+            // The product is already visible, or this screen cannot scroll to it.
         }
+
+        // Search from the driver. A relative ancestor lookup stays inside the title node
+        // and cannot see the product card that wraps it.
+        String xpath = "//*[@content-desc='test-Item']"
+                + "[.//*[@content-desc='test-Item title' and contains(@text, '" + searchText + "')]]"
+                + "//*[@content-desc='test-ADD TO CART']";
+        WebElement addButton = wait.until(ExpectedConditions.elementToBeClickable(AppiumBy.xpath(xpath)));
+        addButton.click();
     }
     
     /**
@@ -461,15 +450,15 @@ public class InventoryPage {
      * @return The number of items in the cart, or 0 if cart is empty or badge not found
      */
     public int getCartItemCount() {
-        try {
-            // Cart badge shows the count - find TextView with numeric text within test-Cart
-            WebElement cartBadge = driver.findElement(AppiumBy.xpath("//android.view.ViewGroup[@content-desc='test-Cart']//android.widget.TextView[not(@text='')]"));
-            String countText = cartBadge.getText().trim();
-            return Integer.parseInt(countText);
-        } catch (Exception e) {
-            // Cart might be empty - no badge visible
-            return 0;
+        List<WebElement> badges = driver.findElements(
+                AppiumBy.xpath("//*[@content-desc='test-Cart']//android.widget.TextView"));
+        for (WebElement badge : badges) {
+            String countText = badge.getText() == null ? "" : badge.getText().trim();
+            if (countText.matches("\\d+")) {
+                return Integer.parseInt(countText);
+            }
         }
+        return 0;
     }
     
     /**
@@ -479,9 +468,8 @@ public class InventoryPage {
      */
     public boolean isCartCount(int expectedCount) {
         try {
-            Thread.sleep(500);
-            int actualCount = getCartItemCount();
-            return actualCount == expectedCount;
+            WebDriverWait countWait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            return Boolean.TRUE.equals(countWait.until(d -> getCartItemCount() == expectedCount));
         } catch (Exception e) {
             return false;
         }

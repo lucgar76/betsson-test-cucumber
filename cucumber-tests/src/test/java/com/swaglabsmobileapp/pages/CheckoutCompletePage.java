@@ -1,5 +1,6 @@
 package com.swaglabsmobileapp.pages;
 
+import com.swaglabsmobileapp.utils.AndroidActions;
 import io.appium.java_client.AppiumBy;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.pagefactory.AndroidFindBy;
@@ -37,7 +38,7 @@ public class CheckoutCompletePage {
         try {
             WebElement completeIndicator = wait.until(
                 ExpectedConditions.presenceOfElementLocated(
-                    AppiumBy.accessibilityId("test-BACK HOME")
+                    AppiumBy.accessibilityId("test-CHECKOUT: COMPLETE!")
                 )
             );
             wait.until(ExpectedConditions.visibilityOf(completeIndicator));
@@ -51,6 +52,11 @@ public class CheckoutCompletePage {
      * Click the BACK HOME button. Selector: content-desc="test-BACK HOME".
      */
     public void clickBackHome() {
+        try {
+            AndroidActions.scrollToDescription(driver, "test-BACK HOME");
+        } catch (Exception ignored) {
+            // The button is already on screen.
+        }
         wait.until(ExpectedConditions.elementToBeClickable(backHomeButton));
         backHomeButton.click();
         try {

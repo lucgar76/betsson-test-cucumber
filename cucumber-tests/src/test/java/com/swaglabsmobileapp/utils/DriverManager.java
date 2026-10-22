@@ -34,45 +34,41 @@ public class DriverManager {
                 options.setDeviceName(ConfigReader.getDeviceName());
                 options.setAutomationName(ConfigReader.getAutomationName());
                 
-                // App capabilities
-                String appPath = ConfigReader.getAppPath();
-                if (appPath != null && !appPath.isEmpty()) {
-                    File appFile = new File(appPath);
-                    if (appFile.exists()) {
-                        options.setApp(appFile.getAbsolutePath());
-                        System.out.println("Using app file: " + appFile.getAbsolutePath());
-                    } else {
-                        System.err.println("App file not found: " + appPath);
-                    }
+                // App capabilities. A missing APK falls back to the installed package.
+                File appFile = resolveAppFile(ConfigReader.getAppPath());
+                if (appFile != null) {
+                    options.setApp(appFile.getAbsolutePath());
+                    System.out.println("Using app file: " + appFile.getAbsolutePath());
                 } else {
-                    // Use package and activity if app path not provided
                     options.setAppPackage(ConfigReader.getAppPackage());
                     options.setAppActivity(ConfigReader.getAppActivity());
                     System.out.println("Using app package: " + ConfigReader.getAppPackage());
                     System.out.println("Using app activity: " + ConfigReader.getAppActivity());
                 }
-                
+
                 // Platform version (optional)
                 String platformVersion = ConfigReader.getPlatformVersion();
                 if (platformVersion != null && !platformVersion.isEmpty()) {
                     options.setPlatformVersion(platformVersion);
                 }
-                
+
                 // Reset capabilities
                 options.setNoReset(ConfigReader.getNoReset());
                 options.setFullReset(ConfigReader.getFullReset());
-                
-                // Ensure app always starts at the main activity (login screen)
-                options.setCapability("appWaitActivity", "*");
-                options.setCapability("appWaitDuration", 30000);
-                
-                // Performance capabilities
+
+                // SplashActivity hands off to MainActivity; wait for that before the steps run.
+                options.setAppWaitActivity("com.swaglabsmobileapp.MainActivity");
+                options.setAppWaitDuration(Duration.ofSeconds(120));
+
                 options.setNewCommandTimeout(Duration.ofSeconds(300));
                 options.setAutoGrantPermissions(true);
-                
-                // Additional Android-specific capabilities
-                options.setCapability("uiautomator2ServerInstallTimeout", 60000);
-                options.setCapability("adbExecTimeout", 60000);
+                options.setDisableWindowAnimation(true);
+                options.setIgnoreHiddenApiPolicyError(true);
+                // Cold emulators can take longer than the driver defaults to grant
+                // permissions and to bring the UiAutomator2 instrumentation online.
+                options.setUiautomator2ServerInstallTimeout(Duration.ofSeconds(120));
+                options.setUiautomator2ServerLaunchTimeout(Duration.ofSeconds(120));
+                options.setAdbExecTimeout(Duration.ofSeconds(120));
                 
                 // Create driver
                 String appiumUrl = ConfigReader.getAppiumUrl();
@@ -80,10 +76,9 @@ public class DriverManager {
                 
                 driver = new AndroidDriver(new URL(appiumUrl), options);
                 
-                // Set timeouts
-                driver.manage().timeouts().implicitlyWait(
-                    Duration.ofSeconds(ConfigReader.getImplicitWait())
-                );
+                // Explicit waits are used in the page objects. An implicit wait makes those
+                // polls wait on every lookup and turns short failures into long ones.
+                driver.manage().timeouts().implicitlyWait(Duration.ZERO);
                 
                 System.out.println("Appium driver initialized successfully");
                 System.out.println("Session ID: " + driver.getSessionId());
@@ -166,5 +161,35 @@ public class DriverManager {
      */
     public static boolean isDriverInitialized() {
         return driver != null;
+    }
+
+    /**
+     * Resolve a configured APK path from the working directory.
+     * Maven is normally started from cucumber-tests, where app.path is ../android/...
+     * @param appPath configured path, possibly relative
+     * @return existing APK file, or null when the app should be launched by package
+     */
+    private static File resolveAppFile(String appPath) {
+        if (appPath == null || appPath.isEmpty()) {
+            return null;
+        }
+
+        File direct = new File(appPath);
+        if (direct.isAbsolute() && direct.exists()) {
+            return direct;
+        }
+
+        File fromWorkingDirectory = new File(System.getProperty("user.dir"), appPath);
+        if (fromWorkingDirectory.exists()) {
+            return fromWorkingDirectory;
+        }
+
+        File fromModule = new File(System.getProperty("user.dir"), "cucumber-tests/" + appPath);
+        if (fromModule.exists()) {
+            return fromModule;
+        }
+
+        System.err.println("App file not found: " + appPath + ". Falling back to the installed package.");
+        return null;
     }
 }

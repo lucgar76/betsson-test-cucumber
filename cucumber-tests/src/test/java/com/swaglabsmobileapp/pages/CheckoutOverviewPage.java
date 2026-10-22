@@ -1,19 +1,16 @@
 package com.swaglabsmobileapp.pages;
 
+import com.swaglabsmobileapp.utils.AndroidActions;
 import io.appium.java_client.AppiumBy;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.pagefactory.AndroidFindBy;
 import io.appium.java_client.pagefactory.AppiumFieldDecorator;
-import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.interactions.PointerInput;
-import org.openqa.selenium.interactions.Sequence;
 import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
-import java.util.Collections;
 
 /**
  * Page Object Model for the Checkout Overview Screen
@@ -57,27 +54,9 @@ public class CheckoutOverviewPage {
      */
     public void scrollToBottom() {
         try {
-            Dimension size = driver.manage().window().getSize();
-            int width = size.getWidth();
-            int height = size.getHeight();
-            int startX = width / 2;
-            int startY = (int) (height * 0.8);
-            int endX = width / 2;
-            int endY = (int) (height * 0.2);
-
-            PointerInput finger = new PointerInput(PointerInput.Kind.TOUCH, "finger");
-            Sequence scroll = new Sequence(finger, 0);
-            scroll.addAction(finger.createPointerMove(Duration.ZERO, PointerInput.Origin.viewport(), startX, startY));
-            scroll.addAction(finger.createPointerDown(PointerInput.MouseButton.LEFT.asArg()));
-            scroll.addAction(finger.createPointerMove(Duration.ofMillis(600), PointerInput.Origin.viewport(), endX, endY));
-            scroll.addAction(finger.createPointerUp(PointerInput.MouseButton.LEFT.asArg()));
-
-            driver.perform(Collections.singletonList(scroll));
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            AndroidActions.scrollToDescription(driver, "test-FINISH");
         } catch (Exception e) {
-            // Ignore scroll failures
+            System.err.println("Failed to scroll to the Finish button: " + e.getMessage());
         }
     }
 
